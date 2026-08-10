@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Viewer</title>
+    <style>
+        body { margin: 0; background-color: #323639; text-align: center; overflow-y: auto; }
+        #pdf-container { padding: 20px 0; }
+        canvas { display: block; margin: 0 auto 20px auto; max-width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .loading { color: white; font-family: sans-serif; margin-top: 50px; font-size: 1.2rem; }
+    </style>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+    <script src="js/resume-data.js"></script>
+</head>
+<body>
+    <div id="pdf-container">
+        <div class="loading" id="loading-text">Loading Resume...</div>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var url = null;
+            // Check local storage first
+            var localData = localStorage.getItem('portfolioData');
+            if (localData) {
+                try {
+                    var parsed = JSON.parse(localData);
+                    if (parsed.resumeData) {
+                        url = parsed.resumeData;
+                    }
+                } catch(e) {}
+            }
+            // Fallback to resume-data.js
+            if (!url && typeof window.DEFAULT_RESUME_DATA !== 'undefined') {
+                url = window.DEFAULT_RESUME_DATA;
+            }
+
+            if (url) {
+                // If base64
+                var loadingTask;
+                if (url.startsWith('data:')) {
+                    var base64 = url.split(',')[1];
+                    var binaryString = window.atob(base64);
+                    var bytes = new Uint8Array(binaryString.length);
+                    for (var i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    loadingTask = pdfjsLib.getDocument({data: bytes});
+                } else {
+                    loadingTask = pdfjsLib.getDocument(url);
+                }
+
+                loadingTask.promise.then(function(pdf) {
+                    document.getElementById('loading-text').style.display = 'none';
+                    var container = document.getElementById('pdf-container');
+                    
+                    for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        (function(num) {
+                            pdf.getPage(num).then(function(page) {
+                                var canvas = document.createElement('canvas');
+                                container.appendChild(canvas);
+                                var scale = 1.5;
+                                var viewport = page.getViewport({scale: scale});
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+
+                                var renderContext = {
+                                    canvasContext: canvas.getContext('2d'),
+                                    viewport: viewport
+                                };
+                                page.render(renderContext);
+                            });
+                        })(pageNum);
+                    }
+                }).catch(function(err) {
+                    console.error("PDF load error: ", err);
+                    document.getElementById('loading-text').innerHTML = 'Error loading PDF natively. <a href="'+url+'" style="color:white; text-decoration:underline;">Click here to open it</a>';
+                });
+            } else {
+                document.getElementById('loading-text').innerText = "No resume data found.";
+            }
+        });
+    </script>
+</body>
+</html>

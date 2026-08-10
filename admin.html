@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — Portfolio Content Manager</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --admin-bg: #060913;
+            --admin-card: rgba(13, 22, 44, 0.75);
+            --admin-border: rgba(0, 102, 255, 0.25);
+            --admin-border-focus: #0066ff;
+            --admin-accent: #0066ff;
+            --admin-accent-glow: rgba(0, 102, 255, 0.4);
+            --admin-cyan: #00d2ff;
+            --admin-text: #f0f4fc;
+            --admin-muted: #8a9bb8;
+            --admin-danger: #ff4757;
+            --admin-success: #00e676;
+            --admin-sidebar-w: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--admin-bg);
+            color: var(--admin-text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            cursor: default !important;
+        }
+
+        /* Ambient Glow Background */
+        .admin-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background:
+                radial-gradient(circle at 10% 20%, rgba(0, 102, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(5, 10, 25, 0.8) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ----------------------------------------------------
+           LOGIN GATEKEEPER
+        ---------------------------------------------------- */
+        #login-gatekeeper {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 9, 19, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        #login-gatekeeper.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: linear-gradient(145deg, rgba(16, 26, 54, 0.9), rgba(9, 15, 33, 0.95));
+            border: 1px solid var(--admin-border);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px var(--admin-accent-glow);
+            animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1.5rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 210, 255, 0.2));
+            border: 1px solid rgba(0, 210, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: 0 10px 25px rgba(0, 102, 255, 0.3);
+        }
+
+        .login-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-card p {
+            color: var(--admin-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(4, 8, 20, 0.8);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.05rem;
+            font-family: inherit;
+            margin-bottom: 1.25rem;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--admin-cyan);
+            box-shadow: 0 0 20px var(--admin-accent-glow);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #0052cc, #00a2ff);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 102, 255, 0.6);
+            background: linear-gradient(135deg, #0066ff, #00d2ff);
+        }
+
+        .login-hint {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--admin-muted);
+        }
+
+        .shake {
+            animation: shakeAnim 0.4s ease;
+        }
+
+        @keyframes shakeAnim {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-8px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* ----------------------------------------------------
+           ADMIN DASHBOARD LAYOUT
+        ---------------------------------------------------- */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* SIDEBAR */
+        .admin-sidebar {
+            width: var(--admin-sidebar-w);
+            background: rgba(9, 15, 32, 0.85);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--admin-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 1.75rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--admin-accent), var(--admin-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.4);
+        }
+
+        .brand-text h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--admin-cyan);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            padding: 1.25rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .nav-category {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--admin-muted);
+            padding: 0.75rem 0.75rem 0.35rem;
+            font-weight: 700;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--admin-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(0, 102, 255, 0.2), rgba(0, 210, 255, 0.08));
+            border-color: rgba(0, 102, 255, 0.4);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.15);
+        }
+
+        .nav-item .icon {
+            font-size: 1.15rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 1.25rem 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-live-site {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.7rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-live-site:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--admin-cyan);
+            color: var(--admin-cyan);
+        }
+
+        .btn-logout {
+            padding: 0.6rem;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--admin-danger);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 71, 87, 0.15);
+        }
+
+        /* MAIN CONTENT */
+        .admin-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .admin-topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(6, 9, 19, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--admin-border);
+            padding: 1rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .topbar-title h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .topbar-title p {
+            font-size: 0.8rem;
+            color: var(--admin-muted);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-action-sec {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.65rem 1.25rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-sec:hover {
+            background: rgba(0, 102, 255, 0.15);
+            border-color: var(--admin-accent);
+        }
+
+        .btn-action-pri {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.65rem 1.5rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0052cc, #00a2ff);
+            border: none;
+            color: #fff;
+            font-size: 0.88rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.4);
+        }
+
+        .btn-action-pri:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.6);
+            background: linear-gradient(135deg, #0066ff, #00d2ff);
+        }
+
+        .admin-content-body {
+            padding: 2.5rem;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeInTab 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* SECTION CARD */
+        .content-card {
+            background: var(--admin-card);
+            border: 1px solid var(--admin-border);
+            border-radius: 18px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+        }
+
+        .card-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-header-row h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--admin-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* FORM ELEMENTS */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--admin-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group .hint {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.35rem;
+            display: block;
+        }
+
+        .admin-input,
+        .admin-textarea {
+            width: 100%;
+            background: rgba(4, 8, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--admin-text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.85rem 1.15rem;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .admin-input:focus,
+        .admin-textarea:focus {
+            outline: none;
+            border-color: var(--admin-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.25);
+            background: rgba(6, 12, 28, 0.95);
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* IMAGE PREVIEW & UPLOAD */
+        .media-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(4, 8, 20, 0.6);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .media-thumb {
+            width: 90px;
+            height: 90px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid var(--admin-accent);
+            background: #000;
+        }
+
+        .media-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .upload-file-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.6rem 1.2rem;
+            background: rgba(0, 102, 255, 0.15);
+            border: 1px solid var(--admin-accent);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+        }
+
+        .upload-file-btn:hover {
+            background: var(--admin-accent);
+        }
+
+        /* ITEM CARDS (Projects, Experience, Education) */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .item-card {
+            background: rgba(4, 8, 20, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.25s;
+        }
+
+        .item-card:hover {
+            border-color: rgba(0, 102, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .item-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .item-num {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--admin-cyan);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .item-del-btn {
+            background: rgba(255, 71, 87, 0.15);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: #ff6b81;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .item-del-btn:hover {
+            background: var(--admin-danger);
+            color: #fff;
+        }
+
+        .btn-add-item {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 102, 255, 0.08);
+            border: 1px dashed rgba(0, 102, 255, 0.4);
+            border-radius: 12px;
+            color: var(--admin-cyan);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-item:hover {
+            background: rgba(0, 102, 255, 0.18);
+            border-color: var(--admin-cyan);
+            transform: translateY(-1px);
+        }
+
+        /* TOAST NOTIFICATION */
+        #admin-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999999;
+            background: linear-gradient(135deg, #091a42, #0044cc);
+            border: 1px solid var(--admin-cyan);
+            color: #fff;
+            padding: 1rem 1.75rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0, 102, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #admin-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 0.75rem;
+            }
+
+            .nav-category {
+                display: none;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+            }
+
+            .form-grid-2,
+            .form-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-topbar {
+                padding: 1rem 1.25rem;
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .topbar-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .admin-content-body {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Glow Background -->
+    <div class="admin-glow"></div>
+
+    <!-- ====================================================
+         1. LOGIN GATEKEEPER MODAL
+    ==================================================== -->
+    <div id="login-gatekeeper">
+        <div class="login-card" id="login-box">
+            <div class="login-icon">🔐</div>
+            <h2>Admin Control Center</h2>
+            <p>Enter your security key to manage and update your portfolio content, titles, and media.</p>
+            <form class="login-form" id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+                <input type="password" id="admin-pass-input" placeholder="••••••••" autocomplete="current-password"
+                    autofocus>
+                <button type="submit" class="login-btn">Unlock Dashboard →</button>
+            </form>
+            <p class="login-hint">Default key: <code>admin2026</code></p>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         2. ADMIN DASHBOARD MAIN LAYOUT
+    ==================================================== -->
+    <div class="admin-layout" id="admin-dashboard-root">
+
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-badge">⚡</div>
+                <div class="brand-text">
+                    <h1>Portfolio CMS</h1>
+                    <span>Admin Panel</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="nav-category">General</span>
+                <button class="nav-item active" data-tab="tab-branding">
+                    <span class="icon">🌐</span> Site &amp; Branding
+                </button>
+                <button class="nav-item" data-tab="tab-hero">
+                    <span class="icon">👤</span> Hero &amp; Portrait
+                </button>
+
+                <span class="nav-category">Content</span>
+                <button class="nav-item" data-tab="tab-about">
+                    <span class="icon">📝</span> About &amp; Stats
+                </button>
+                <button class="nav-item" data-tab="tab-skills">
+                    <span class="icon">⚡</span> Skills List
+                </button>
+                <button class="nav-item" data-tab="tab-projects">
+                    <span class="icon">💼</span> Featured Projects
+                </button>
+                <button class="nav-item" data-tab="tab-career">
+                    <span class="icon">🎓</span> Experience &amp; Edu
+                </button>
+
+                <span class="nav-category">Links &amp; Files</span>
+                <button class="nav-item" data-tab="tab-resume">
+                    <span class="icon">📄</span> Resume CV
+                </button>
+                <button class="nav-item" data-tab="tab-socials">
+                    <span class="icon">🔗</span> Social Profiles
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="index.html" target="_blank" class="btn-live-site">
+                    <span>👁️ View Live Website</span>
+                </a>
+                <button class="btn-logout" id="btn-logout" onclick="handleLogout()">
+                    🚪 Log Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE -->
+        <main class="admin-main">
+
+            <!-- TOPBAR -->
+            <header class="admin-topbar">
+                <div class="topbar-title">
+                    <h2 id="current-section-title">Site &amp; Branding Settings</h2>
+                    <p>Customize tab title, brand name, meta description, and global text.</p>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn-action-sec" onclick="resetToDefaults()"
+                        title="Reset all changes to config.js defaults">
+                        🔄 Reset Defaults
+                    </button>
+                    <button class="btn-action-sec" onclick="exportConfigFile()"
+                        title="Export config.js for Vercel / GitHub">
+                        📂 Export config.js
+                    </button>
+                    <button class="btn-action-pri" onclick="saveAllContent()">
+                        💾 Save &amp; Publish
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB CONTENT CONTAINER -->
+            <div class="admin-content-body">
+
+                <!-- --------------------------------------------
+                     TAB 1: SITE & BRANDING
+                -------------------------------------------- -->
+                <section class="tab-panel active" id="tab-branding">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>🌐 Browser Tab &amp; Page Title</h3>
+                                <p class="card-desc">Controls the text shown on browser tabs (e.g. "D.Nova — Premium
+                                    Portfolio") and SEO title.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-page-title">Browser Tab Title / Page Title</label>
+                            <input type="text" id="f-page-title" class="admin-input"
+                                placeholder="e.g. D.Nova — Premium Portfolio">
+                            <span class="hint">This immediately updates the browser tab title on your main portfolio
+                                page.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-meta-desc">Meta Description (SEO &amp; Social Previews)</label>
+                            <textarea id="f-meta-desc" class="admin-textarea" rows="2"
+                                placeholder="e.g. D.Nova — A visionary developer blending design and engineering."></textarea>
+                            <span class="hint">Used by search engines and link sharing previews.</span>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>🏷️ Navbar Logo &amp; Footer Copyright</h3>
+                                <p class="card-desc">Brand text displayed in the header navigation and bottom footer.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="f-logo-name">Navbar Brand / Logo Name</label>
+                                <input type="text" id="f-logo-name" class="admin-input"
+                                    placeholder="e.g. Prathosh">
+                            </div>
+                            <div class="form-group">
+                                <label for="f-footer-text">Footer Copyright Text</label>
+                                <input type="text" id="f-footer-text" class="admin-input"
+                                    placeholder="e.g. © 2026 Prathosh. All rights reserved.">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 2: HERO & PORTRAIT
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-hero">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>👤 Hero Intro Text</h3>
+                                <p class="card-desc">The primary greeting and headline visitors see upon opening your
+                                    portfolio.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-hero-title">Main Hero Title</label>
+                            <input type="text" id="f-hero-title" class="admin-input" placeholder="e.g. Hello World">
+                        </div>
+                        <div class="form-group">
+                            <label for="f-hero-subtitle">Hero Subtitle</label>
+                            <input type="text" id="f-hero-subtitle" class="admin-input"
+                                placeholder="e.g. Design & Engineering by Prathosh, a specialized developer.">
+                            <span class="hint">Your brand/name in this subtitle will automatically be highlighted with
+                                gradient accent.</span>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>📸 Portrait Photo</h3>
+                                <p class="card-desc">Upload a high-quality personal portrait or specify an image URL.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="media-preview-box">
+                            <img id="portrait-preview-img" class="media-thumb"
+                                src="https://images.unsplash.com/photo-1542596594-649edbc13630?q=80&w=900&auto=format&fit=crop"
+                                alt="Portrait Preview">
+                            <div class="media-actions">
+                                <label class="upload-file-btn">
+                                    📷 Upload New Photo
+                                    <input type="file" id="f-portrait-file" accept="image/*" style="display:none;"
+                                        onchange="handlePortraitUpload(event)">
+                                </label>
+                                <input type="text" id="f-portrait-url" class="admin-input"
+                                    placeholder="Or paste image URL here..."
+                                    oninput="handlePortraitUrlChange(this.value)">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 3: ABOUT & STATS
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-about">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>📝 About Me Bio</h3>
+                                <p class="card-desc">Detailed introduction and storytelling paragraph in the About
+                                    section.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-about-desc">Biography Description</label>
+                            <textarea id="f-about-desc" class="admin-textarea" rows="6"
+                                placeholder="Write your professional bio here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>📊 Key Statistics</h3>
+                                <p class="card-desc">Three highlighted stats with animated count-up effects.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid-3">
+                            <div class="form-group">
+                                <label>Stat #1</label>
+                                <input type="text" id="f-stat1-val" class="admin-input"
+                                    placeholder="Value (e.g. 1+ Year)" style="margin-bottom:8px;">
+                                <input type="text" id="f-stat1-label" class="admin-input"
+                                    placeholder="Label (e.g. Learning Journey)">
+                            </div>
+                            <div class="form-group">
+                                <label>Stat #2</label>
+                                <input type="text" id="f-stat2-val" class="admin-input" placeholder="Value (e.g. 10+)"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="f-stat2-label" class="admin-input"
+                                    placeholder="Label (e.g. Projects Completed)">
+                            </div>
+                            <div class="form-group">
+                                <label>Stat #3</label>
+                                <input type="text" id="f-stat3-val" class="admin-input" placeholder="Value (e.g. 100%)"
+                                    style="margin-bottom:8px;">
+                                <input type="text" id="f-stat3-label" class="admin-input"
+                                    placeholder="Label (e.g. Passionate Commitment)">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 4: SKILLS
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-skills">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>⚡ Technical &amp; Design Skills</h3>
+                                <p class="card-desc">These skills animate seamlessly in the infinite interactive
+                                    marquee.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-skills-text">Skills List (Comma-Separated)</label>
+                            <textarea id="f-skills-text" class="admin-textarea" rows="8"
+                                placeholder="UI/UX Architecture, Frontend Development, Vanilla JavaScript, HTML5 & CSS3, Motion Engineering..."></textarea>
+                            <span class="hint">Separate each skill with a comma. They will automatically be distributed
+                                across dual infinite marquee tracks.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 5: FEATURED PROJECTS
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-projects">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>💼 Portfolio Projects</h3>
+                                <p class="card-desc">Add, edit, or remove showcase projects. Top 3 appear on the
+                                    homepage; all appear on the projects page.</p>
+                            </div>
+                        </div>
+
+                        <div class="items-list" id="projects-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <button class="btn-add-item" onclick="addNewProject()">
+                            <span>+ Add New Project Card</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 6: EXPERIENCE & EDUCATION
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-career">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>💼 Professional Experience</h3>
+                                <p class="card-desc">Career timeline cards showing your roles, companies, and
+                                    achievements.</p>
+                            </div>
+                        </div>
+                        <div class="items-list" id="experience-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        <button class="btn-add-item" onclick="addNewExperience()">
+                            <span>+ Add Work Experience</span>
+                        </button>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>🎓 Education &amp; Certifications</h3>
+                                <p class="card-desc">Degrees, certifications, institutions, and academic grades/CGPA.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="items-list" id="education-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        <button class="btn-add-item" onclick="addNewEducation()">
+                            <span>+ Add Education Record</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 7: RESUME
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-resume">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>📄 Curriculum Vitae (Resume)</h3>
+                                <p class="card-desc">Configure the resume download section and upload your PDF/Word
+                                    document.</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-resume-desc">Resume Section Description</label>
+                            <textarea id="f-resume-desc" class="admin-textarea" rows="3"
+                                placeholder="Interested in the finer details of my career? Download my full digital resume below."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-resume-label">Download Button Text</label>
+                            <input type="text" id="f-resume-label" class="admin-input"
+                                placeholder="e.g. Download Resume v2.0">
+                        </div>
+
+                        <div class="form-group" style="margin-top:2rem;">
+                            <label>Resume File (PDF/DOC)</label>
+                            <div class="media-preview-box">
+                                <div style="font-size:2.5rem; color:var(--admin-cyan);">📑</div>
+                                <div class="media-actions">
+                                    <label class="upload-file-btn">
+                                        📁 Select Resume File
+                                        <input type="file" id="f-resume-file" accept=".pdf,.doc,.docx"
+                                            style="display:none;" onchange="handleResumeUpload(event)">
+                                    </label>
+                                    <span id="resume-file-status"
+                                        style="font-size:0.85rem; color:var(--admin-muted);">No file uploaded
+                                        yet.</span>
+                                </div>
+                            </div>
+                            <input type="hidden" id="f-resume-data">
+                            <input type="hidden" id="f-resume-filename">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- --------------------------------------------
+                     TAB 8: SOCIAL PROFILES
+                -------------------------------------------- -->
+                <section class="tab-panel" id="tab-socials">
+                    <div class="content-card">
+                        <div class="card-header-row">
+                            <div>
+                                <h3>🔗 Social &amp; Coding Profiles</h3>
+                                <p class="card-desc">Decide which links appear on your website, change the
+                                    wording/platform names (e.g. GitHub to LinkedIn, Instagram to WhatsApp, etc.), or
+                                    add new custom links.</p>
+                            </div>
+                            <button type="button" class="btn-action-pri" onclick="addNewSocialLink()">+ Add New
+                                Link</button>
+                        </div>
+                        <div id="socials-container" class="items-list">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="admin-toast">
+        <span id="admin-toast-icon">✅</span>
+        <span id="admin-toast-msg">Settings saved successfully!</span>
+    </div>
+
+    <!-- Base Configuration Script -->
+    <script src="js/config.js"></script>
+
+    <!-- Admin Controller Script -->
+    <script>
+        (function () {
+            'use strict';
+
+            const STORE_KEY = 'dnova_cms_v2';
+            const ADMIN_AUTH_KEY = 'portfolio_admin_auth';
+            const DEFAULT_PASSWORD = 'admin2026';
+
+            let currentData = {};
+
+            /* ==================================================
+               1. AUTHENTICATION / GATEKEEPER
+            ================================================== */
+            function checkAuth() {
+                const isAuthed = sessionStorage.getItem(ADMIN_AUTH_KEY) === 'true';
+                const gatekeeper = document.getElementById('login-gatekeeper');
+                if (isAuthed) {
+                    gatekeeper.classList.add('hidden');
+                } else {
+                    gatekeeper.classList.remove('hidden');
+                    setTimeout(() => {
+                        const input = document.getElementById('admin-pass-input');
+                        if (input) input.focus();
+                    }, 100);
+                }
+            }
+
+            window.handleLogin = function () {
+                const passInput = document.getElementById('admin-pass-input');
+                const val = passInput.value.trim();
+                const box = document.getElementById('login-box');
+
+                if (val === DEFAULT_PASSWORD) {
+                    sessionStorage.setItem(ADMIN_AUTH_KEY, 'true');
+                    document.getElementById('login-gatekeeper').classList.add('hidden');
+                    showToast('Welcome, Admin! Dashboard unlocked.');
+                    passInput.value = '';
+                } else {
+                    box.classList.remove('shake');
+                    void box.offsetWidth;
+                    box.classList.add('shake');
+                    showToast('Incorrect security key. Try again.', '❌');
+                }
+            };
+
+            window.handleLogout = function () {
+                sessionStorage.removeItem(ADMIN_AUTH_KEY);
+                checkAuth();
+                showToast('Logged out successfully.');
+            };
+
+            /* ==================================================
+               2. DATA LOADING & POPULATION
+            ================================================== */
+            function loadMasterData() {
+                let local = {};
+                try {
+                    local = JSON.parse(localStorage.getItem(STORE_KEY)) || {};
+                } catch (e) {
+                    local = {};
+                }
+
+                const c = window.CMS_CONFIG || {};
+
+                currentData = {
+                    pageTitle: local.pageTitle || (c.site ? c.site.pageTitle : "Prathosh — Premium Portfolio"),
+                    metaDescription: local.metaDescription || (c.site ? c.site.metaDescription : "Prathosh — A visionary developer blending design and engineering."),
+                    logoName: local.logoName || (c.site ? c.site.logoName : "Prathosh"),
+                    footerText: local.footerText || (c.site ? c.site.footerText : "© 2026 Prathosh. All rights reserved."),
+
+                    heroTitle: local.heroTitle || (c.hero ? c.hero.title : "Crafting Digital Experiences"),
+                    heroSubtitle: local.heroSubtitle || (c.hero ? c.hero.subtitle : "Design & Engineering by Prathosh, a specialized design wizard building scalable web applications."),
+
+                    aboutDesc: local.aboutDesc || (c.about ? c.about.description : ""),
+                    aboutStats: local.aboutStats || (c.about ? c.about.stats : [
+                        { val: "1+ Year", label: "Learning Journey" },
+                        { val: "10+", label: "Projects Completed" },
+                        { val: "100%", label: "Passionate Commitment" }
+                    ]),
+
+                    skills: local.skills || c.skills || [],
+                    projects: local.projects || c.projects || [],
+                    experience: local.experience || c.experience || [],
+                    education: local.education || c.education || [],
+
+                    resumeDesc: local.resumeDesc || (c.resume ? c.resume.description : ""),
+                    resumeLabel: local.resumeLabel || (c.resume ? c.resume.buttonText : "Download Resume v2.0"),
+                    resumeData: local.resumeData || (c.resume ? c.resume.fileData : ""),
+                    resumeFileName: local.resumeFileName || (c.resume ? c.resume.fileName : "Prathosh_S_Web_Developer_Resume.pdf"),
+
+                    socials: (function () {
+                        var defaultSoc = [
+                            { label: "LinkedIn", url: "https://linkedin.com/in/prathosh" },
+                            { label: "GitHub", url: "https://github.com/prathosh" },
+                            { label: "LeetCode", url: "https://leetcode.com/u/prathosh" },
+                            { label: "Instagram", url: "https://instagram.com/prathosh" },
+                            { label: "Mail Me !", url: "mailto:prathoshprathosh78@gmail.com" }
+                        ];
+                        var raw = local.socials || c.socials || defaultSoc;
+                        if (!Array.isArray(raw) && typeof raw === 'object' && raw !== null) {
+                            var arr = [];
+                            if (raw.linkedin) arr.push({ label: 'LinkedIn', url: raw.linkedin });
+                            if (raw.github) arr.push({ label: 'GitHub', url: raw.github });
+                            if (raw.leetcode) arr.push({ label: 'LeetCode', url: raw.leetcode });
+                            if (raw.instagram) arr.push({ label: 'Instagram', url: raw.instagram });
+                            if (raw.mail) arr.push({ label: 'Mail Me !', url: raw.mail.startsWith('mailto:') ? raw.mail : 'mailto:' + raw.mail });
+                            return arr.length ? arr : defaultSoc;
+                        }
+                        return Array.isArray(raw) ? raw : defaultSoc;
+                    })(),
+                    portraitSrc: local.portraitSrc || (c.portrait ? c.portrait.src : "images/hero-avatar.png")
+                };
+
+                populateAllForms();
+            }
+
+            function populateAllForms() {
+                // Site & Branding
+                document.getElementById('f-page-title').value = currentData.pageTitle || '';
+                document.getElementById('f-meta-desc').value = currentData.metaDescription || '';
+                document.getElementById('f-logo-name').value = currentData.logoName || '';
+                document.getElementById('f-footer-text').value = currentData.footerText || '';
+
+                // Hero
+                document.getElementById('f-hero-title').value = currentData.heroTitle || '';
+                document.getElementById('f-hero-subtitle').value = currentData.heroSubtitle || '';
+
+                // Portrait
+                document.getElementById('portrait-preview-img').src = currentData.portraitSrc || '';
+                document.getElementById('f-portrait-url').value = currentData.portraitSrc && !currentData.portraitSrc.startsWith('data:') ? currentData.portraitSrc : '';
+
+                // About
+                document.getElementById('f-about-desc').value = currentData.aboutDesc || '';
+                if (currentData.aboutStats && currentData.aboutStats.length >= 3) {
+                    document.getElementById('f-stat1-val').value = currentData.aboutStats[0].val || currentData.aboutStats[0].num || '';
+                    document.getElementById('f-stat1-label').value = currentData.aboutStats[0].label || '';
+                    document.getElementById('f-stat2-val').value = currentData.aboutStats[1].val || currentData.aboutStats[1].num || '';
+                    document.getElementById('f-stat2-label').value = currentData.aboutStats[1].label || '';
+                    document.getElementById('f-stat3-val').value = currentData.aboutStats[2].val || currentData.aboutStats[2].num || '';
+                    document.getElementById('f-stat3-label').value = currentData.aboutStats[2].label || '';
+                }
+
+                // Skills
+                document.getElementById('f-skills-text').value = (currentData.skills || []).join(', ');
+
+                // Projects
+                renderProjectsList(currentData.projects || []);
+
+                // Timeline
+                renderExperienceList(currentData.experience || []);
+                renderEducationList(currentData.education || []);
+
+                // Resume
+                document.getElementById('f-resume-desc').value = currentData.resumeDesc || '';
+                document.getElementById('f-resume-label').value = currentData.resumeLabel || '';
+                document.getElementById('f-resume-data').value = currentData.resumeData || '';
+                var fn = currentData.resumeFileName || 'Prathosh_S_Web_Developer_Resume.pdf';
+                document.getElementById('f-resume-filename').value = fn;
+                const resumeStatus = document.getElementById('resume-file-status');
+                resumeStatus.textContent = "Current File: " + fn + " (Ready to View & Download)";
+                resumeStatus.style.color = "var(--admin-cyan)";
+
+                // Socials
+                renderSocialsList(currentData.socials || []);
+            }
+
+            /* ==================================================
+               3. TAB SWITCHING
+            ================================================== */
+            const navItems = document.querySelectorAll('.nav-item');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            const sectionTitle = document.getElementById('current-section-title');
+
+            const tabTitles = {
+                'tab-branding': 'Site & Branding Settings',
+                'tab-hero': 'Hero & Portrait Settings',
+                'tab-about': 'About Me & Key Statistics',
+                'tab-skills': 'Skills & Technical Marquee',
+                'tab-projects': 'Featured Projects Manager',
+                'tab-career': 'Experience & Education Timeline',
+                'tab-resume': 'Curriculum Vitae (Resume) File',
+                'tab-socials': 'Social & Developer Links'
+            };
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    const targetTab = this.getAttribute('data-tab');
+                    navItems.forEach(n => n.classList.remove('active'));
+                    tabPanels.forEach(p => p.classList.remove('active'));
+
+                    this.classList.add('active');
+                    const activePanel = document.getElementById(targetTab);
+                    if (activePanel) activePanel.classList.add('active');
+
+                    if (sectionTitle && tabTitles[targetTab]) {
+                        sectionTitle.textContent = tabTitles[targetTab];
+                    }
+                });
+            });
+
+            /* ==================================================
+               4. MEDIA UPLOAD HANDLERS
+            ================================================== */
+            window.handlePortraitUpload = function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        currentData.portraitSrc = evt.target.result;
+                        document.getElementById('portrait-preview-img').src = evt.target.result;
+                        document.getElementById('f-portrait-url').value = '';
+                        showToast('Portrait photo loaded.');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            window.handlePortraitUrlChange = function (url) {
+                if (url.trim()) {
+                    currentData.portraitSrc = url.trim();
+                    document.getElementById('portrait-preview-img').src = url.trim();
+                }
+            };
+
+            window.handleResumeUpload = function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        document.getElementById('f-resume-data').value = evt.target.result;
+                        document.getElementById('f-resume-filename').value = file.name;
+                        const status = document.getElementById('resume-file-status');
+                        status.textContent = "Selected: " + file.name;
+                        status.style.color = "var(--admin-cyan)";
+                        showToast('Resume file attached.');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            /* ==================================================
+               5. DYNAMIC CARDS (PROJECTS, CAREER, EDU)
+            ================================================== */
+            function renderProjectsList(projects) {
+                const container = document.getElementById('projects-container');
+                container.innerHTML = '';
+                projects.forEach((p, idx) => {
+                    container.appendChild(createProjectCardEl(p, idx));
+                });
+            }
+
+            function createProjectCardEl(p, idx) {
+                const div = document.createElement('div');
+                div.className = 'item-card project-item';
+                // showLink defaults to true if not set (backward compat)
+                const showLink = p.showLink === false ? 'false' : 'true';
+                div.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-num">Project #${idx + 1}</span>
+                        <button type="button" class="item-del-btn" onclick="this.closest('.item-card').remove(); reindexCards('projects-container');">✕ Remove</button>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>Project Title</label>
+                            <input type="text" class="admin-input p-title" value="${esc(p.title || '')}" placeholder="e.g. Aura FinTech Dashboard">
+                        </div>
+                        <div class="form-group">
+                            <label>Show Live Link Button</label>
+                            <select class="admin-input p-show-link" style="cursor:pointer;">
+                                <option value="true" ${showLink === 'true' ? 'selected' : ''}>✅ Yes — show link</option>
+                                <option value="false" ${showLink === 'false' ? 'selected' : ''}>🚫 No — hide link</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group p-link-group" style="${showLink === 'false' ? 'opacity:0.4;pointer-events:none;' : ''}">
+                        <label>Live Link URL</label>
+                        <input type="text" class="admin-input p-link" value="${esc(p.link || '')}" placeholder="https://example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="admin-textarea p-desc" rows="2" placeholder="Describe the technology and impact of this project...">${esc(p.desc || '')}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Project Thumbnail</label>
+                        <div class="media-preview-box">
+                            <img class="media-thumb p-preview" src="${p.img || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop'}" alt="Project Preview">
+                            <div class="media-actions">
+                                <label class="upload-file-btn">
+                                    📷 Upload Image
+                                    <input type="file" class="p-file" accept="image/*" style="display:none;" onchange="handleProjectImageUpload(event, this)">
+                                </label>
+                                <input type="text" class="admin-input p-img-url" value="${p.img && !p.img.startsWith('data:') ? esc(p.img) : ''}" placeholder="Or paste image URL..." oninput="handleProjectUrlInput(this)">
+                                <input type="hidden" class="p-img-data" value="${esc(p.img || '')}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Toggle link group enabled/disabled when select changes
+                const sel = div.querySelector('.p-show-link');
+                const linkGroup = div.querySelector('.p-link-group');
+                sel.addEventListener('change', function () {
+                    if (this.value === 'false') {
+                        linkGroup.style.opacity = '0.4';
+                        linkGroup.style.pointerEvents = 'none';
+                    } else {
+                        linkGroup.style.opacity = '1';
+                        linkGroup.style.pointerEvents = 'auto';
+                    }
+                });
+
+                return div;
+            }
+
+            window.handleProjectImageUpload = function (e, inputEl) {
+                const file = e.target.files[0];
+                if (file) {
+                    const card = inputEl.closest('.item-card');
+                    const reader = new FileReader();
+                    reader.onload = function (evt) {
+                        card.querySelector('.p-preview').src = evt.target.result;
+                        card.querySelector('.p-img-data').value = evt.target.result;
+                        card.querySelector('.p-img-url').value = '';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            window.handleProjectUrlInput = function (urlInput) {
+                const card = urlInput.closest('.item-card');
+                const val = urlInput.value.trim();
+                if (val) {
+                    card.querySelector('.p-preview').src = val;
+                    card.querySelector('.p-img-data').value = val;
+                }
+            };
+
+            window.addNewProject = function () {
+                const container = document.getElementById('projects-container');
+                const idx = container.children.length;
+                container.appendChild(createProjectCardEl({
+                    title: 'New Featured Project',
+                    desc: 'A modern web application built with high performance and responsive design.',
+                    link: '#',
+                    img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop'
+                }, idx));
+                showToast('New project card added.');
+            };
+
+            // EXPERIENCE
+            function renderExperienceList(expList) {
+                const container = document.getElementById('experience-container');
+                container.innerHTML = '';
+                expList.forEach((e, idx) => {
+                    container.appendChild(createExpCardEl(e, idx));
+                });
+            }
+
+            function createExpCardEl(e, idx) {
+                const div = document.createElement('div');
+                div.className = 'item-card exp-item';
+                div.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-num">Experience #${idx + 1}</span>
+                        <button type="button" class="item-del-btn" onclick="this.closest('.item-card').remove(); reindexCards('experience-container');">✕ Remove</button>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Date / Period</label>
+                            <input type="text" class="admin-input e-date" value="${esc(e.date || '')}" placeholder="e.g. 2024 – Present">
+                        </div>
+                        <div class="form-group">
+                            <label>Role / Position</label>
+                            <input type="text" class="admin-input e-role" value="${esc(e.role || '')}" placeholder="e.g. Junior Developer Intern">
+                        </div>
+                        <div class="form-group">
+                            <label>Company / Organization</label>
+                            <input type="text" class="admin-input e-org" value="${esc(e.org || '')}" placeholder="e.g. Tech Studio Ltd">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Responsibilities &amp; Achievements</label>
+                        <textarea class="admin-textarea e-desc" rows="3" placeholder="Describe your key contributions and tech stack...">${esc(e.desc || '')}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Tech Stack Tags <span style="font-weight:400;color:var(--muted);">(comma-separated)</span></label>
+                        <input type="text" class="admin-input e-tags" value="${esc((e.tags || []).join(', '))}" placeholder="e.g. React, TypeScript, GSAP, Tailwind CSS">
+                        <span class="hint">These appear as pill badges on the timeline card.</span>
+                    </div>
+                `;
+                return div;
+            }
+
+            window.addNewExperience = function () {
+                const container = document.getElementById('experience-container');
+                const idx = container.children.length;
+                container.appendChild(createExpCardEl({
+                    date: '2024 – Present',
+                    role: 'Frontend Developer',
+                    org: 'Company Name',
+                    desc: 'Developed responsive web applications with modern animations and state management.'
+                }, idx));
+                showToast('New experience entry added.');
+            };
+
+            // EDUCATION
+            function renderEducationList(eduList) {
+                const container = document.getElementById('education-container');
+                container.innerHTML = '';
+                eduList.forEach((ed, idx) => {
+                    container.appendChild(createEduCardEl(ed, idx));
+                });
+            }
+
+            function createEduCardEl(ed, idx) {
+                const div = document.createElement('div');
+                div.className = 'item-card edu-item';
+                div.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-num">Education #${idx + 1}</span>
+                        <button type="button" class="item-del-btn" onclick="this.closest('.item-card').remove(); reindexCards('education-container');">✕ Remove</button>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label>Date / Year</label>
+                            <input type="text" class="admin-input ed-date" value="${esc(ed.date || '')}" placeholder="e.g. 2020 – 2024">
+                        </div>
+                        <div class="form-group">
+                            <label>Degree / Certification</label>
+                            <input type="text" class="admin-input ed-role" value="${esc(ed.role || '')}" placeholder="e.g. B.Tech in Computer Science">
+                        </div>
+                        <div class="form-group">
+                            <label>Institution</label>
+                            <input type="text" class="admin-input ed-org" value="${esc(ed.org || '')}" placeholder="e.g. University Name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Grade / CGPA (Optional)</label>
+                        <input type="text" class="admin-input ed-grade" value="${esc(ed.grade || '')}" placeholder="e.g. 8.5 CGPA or 90%">
+                    </div>
+                    <div class="form-group">
+                        <label>Description &amp; Major</label>
+                        <textarea class="admin-textarea ed-desc" rows="2" placeholder="Specialization details and achievements...">${esc(ed.desc || '')}</textarea>
+                    </div>
+                `;
+                return div;
+            }
+
+            window.addNewEducation = function () {
+                const container = document.getElementById('education-container');
+                const idx = container.children.length;
+                container.appendChild(createEduCardEl({
+                    date: '2020 – 2024',
+                    role: 'B.Sc in Computer Science',
+                    org: 'University Name',
+                    grade: '8.5 CGPA',
+                    desc: 'Graduated with Distinction in Web Engineering and HCI.'
+                }, idx));
+                showToast('New education entry added.');
+            };
+
+            // SOCIAL & CUSTOM LINKS
+            function renderSocialsList(socList) {
+                const container = document.getElementById('socials-container');
+                if (!container) return;
+                container.innerHTML = '';
+
+                let list = socList;
+                if (!Array.isArray(list) && typeof list === 'object' && list !== null) {
+                    const arr = [];
+                    if (list.linkedin) arr.push({ label: 'LinkedIn', url: list.linkedin });
+                    if (list.github) arr.push({ label: 'GitHub', url: list.github });
+                    if (list.leetcode) arr.push({ label: 'LeetCode', url: list.leetcode });
+                    if (list.instagram) arr.push({ label: 'Instagram', url: list.instagram });
+                    list = arr;
+                }
+
+                if (!Array.isArray(list) || list.length === 0) {
+                    list = [
+                        { label: 'LinkedIn', url: 'https://linkedin.com/in/prathosh' },
+                        { label: 'GitHub', url: 'https://github.com/prathosh' },
+                        { label: 'LeetCode', url: 'https://leetcode.com/u/prathosh' },
+                        { label: 'Instagram', url: 'https://instagram.com/prathosh' },
+                        { label: 'Mail Me !', url: 'mailto:prathoshprathosh78@gmail.com' }
+                    ];
+                }
+
+                list.forEach((soc, idx) => {
+                    container.appendChild(createSocialCardEl(soc, idx));
+                });
+            }
+
+            function createSocialCardEl(soc, idx) {
+                const div = document.createElement('div');
+                div.className = 'item-card social-item';
+                const labelVal = soc.label || 'Custom Link';
+                div.innerHTML = `
+                    <div class="item-card-header">
+                        <span class="item-num">Link #${idx + 1}: <strong class="soc-header-label">${esc(labelVal)}</strong></span>
+                        <button type="button" class="item-del-btn" onclick="this.closest('.item-card').remove(); reindexCards('socials-container');">✕ Remove</button>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label>Platform / Button Wording</label>
+                            <input type="text" class="admin-input soc-label" value="${esc(soc.label || '')}" placeholder="e.g. LinkedIn, WhatsApp, GitHub, Instagram..." oninput="const h = this.closest('.item-card').querySelector('.soc-header-label'); if(h) h.textContent = this.value || 'Custom Link';">
+                            <span class="hint">The button text shown on the portfolio (e.g. WhatsApp, LinkedIn).</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Profile / Link URL</label>
+                            <input type="text" class="admin-input soc-url" value="${esc(soc.url || '')}" placeholder="https://...">
+                            <span class="hint">Destination URL when clicked (e.g. https://wa.me/..., https://linkedin.com/...).</span>
+                        </div>
+                    </div>
+                `;
+                return div;
+            }
+
+            window.addNewSocialLink = function () {
+                const container = document.getElementById('socials-container');
+                const idx = container.children.length;
+                container.appendChild(createSocialCardEl({
+                    label: 'WhatsApp',
+                    url: 'https://wa.me/'
+                }, idx));
+                showToast('New social / profile link added.');
+            };
+
+            window.reindexCards = function (containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const items = container.querySelectorAll('.item-card');
+                items.forEach((item, i) => {
+                    const numEl = item.querySelector('.item-num');
+                    if (numEl) {
+                        const prefix = containerId.includes('project') ? 'Project' : (containerId.includes('exp') ? 'Experience' : (containerId.includes('edu') ? 'Education' : 'Link'));
+                        const strong = item.querySelector('.soc-header-label');
+                        if (strong) {
+                            numEl.innerHTML = `${prefix} #${i + 1}: <strong class="soc-header-label">${strong.textContent}</strong>`;
+                        } else {
+                            numEl.textContent = `${prefix} #${i + 1}`;
+                        }
+                    }
+                });
+            };
+
+            /* ==================================================
+               6. SAVE CONTENT TO LOCALSTORAGE
+            ================================================== */
+            window.saveAllContent = function () {
+                // 1. Collect site & branding
+                const pageTitle = document.getElementById('f-page-title').value.trim();
+                const metaDesc = document.getElementById('f-meta-desc').value.trim();
+                const logoName = document.getElementById('f-logo-name').value.trim();
+                const footerText = document.getElementById('f-footer-text').value.trim();
+
+                // 2. Hero
+                const heroTitle = document.getElementById('f-hero-title').value.trim();
+                const heroSubtitle = document.getElementById('f-hero-subtitle').value.trim();
+
+                // 3. About & Stats
+                const aboutDesc = document.getElementById('f-about-desc').value.trim();
+                const aboutStats = [
+                    { val: document.getElementById('f-stat1-val').value.trim(), label: document.getElementById('f-stat1-label').value.trim() },
+                    { val: document.getElementById('f-stat2-val').value.trim(), label: document.getElementById('f-stat2-label').value.trim() },
+                    { val: document.getElementById('f-stat3-val').value.trim(), label: document.getElementById('f-stat3-label').value.trim() }
+                ];
+
+                // 4. Skills
+                const rawSkills = document.getElementById('f-skills-text').value;
+                const skills = rawSkills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+                // 5. Projects
+                const projects = [];
+                document.querySelectorAll('#projects-container .project-item').forEach(card => {
+                    const showLinkEl = card.querySelector('.p-show-link');
+                    const showLink = showLinkEl ? showLinkEl.value !== 'false' : true;
+                    projects.push({
+                        title: (card.querySelector('.p-title') || {}).value || '',
+                        desc: (card.querySelector('.p-desc') || {}).value || '',
+                        link: (card.querySelector('.p-link') || {}).value || '',
+                        img: (card.querySelector('.p-img-data') || {}).value || (card.querySelector('.p-preview') || {}).src || '',
+                        showLink: showLink
+                    });
+                });
+
+                // 6. Experience
+                const experience = [];
+                document.querySelectorAll('#experience-container .exp-item').forEach(card => {
+                    const rawTags = (card.querySelector('.e-tags') || {}).value || '';
+                    experience.push({
+                        date: (card.querySelector('.e-date') || {}).value || '',
+                        role: (card.querySelector('.e-role') || {}).value || '',
+                        org: (card.querySelector('.e-org') || {}).value || '',
+                        desc: (card.querySelector('.e-desc') || {}).value || '',
+                        tags: rawTags.split(',').map(t => t.trim()).filter(t => t.length > 0)
+                    });
+                });
+
+                // 7. Education
+                const education = [];
+                document.querySelectorAll('#education-container .edu-item').forEach(card => {
+                    education.push({
+                        date: (card.querySelector('.ed-date') || {}).value || '',
+                        role: (card.querySelector('.ed-role') || {}).value || '',
+                        org: (card.querySelector('.ed-org') || {}).value || '',
+                        grade: (card.querySelector('.ed-grade') || {}).value || '',
+                        desc: (card.querySelector('.ed-desc') || {}).value || ''
+                    });
+                });
+
+                // 8. Resume
+                const resumeDesc = document.getElementById('f-resume-desc').value.trim();
+                const resumeLabel = document.getElementById('f-resume-label').value.trim();
+                const resumeData = document.getElementById('f-resume-data').value;
+                const resumeFileName = document.getElementById('f-resume-filename').value;
+
+                // 9. Socials
+                const socials = [];
+                document.querySelectorAll('#socials-container .social-item').forEach(card => {
+                    const label = (card.querySelector('.soc-label') || {}).value ? card.querySelector('.soc-label').value.trim() : '';
+                    let url = (card.querySelector('.soc-url') || {}).value ? card.querySelector('.soc-url').value.trim() : '';
+                    if (label) {
+                        if (url && url !== '#') {
+                            if (url.indexOf('@') > -1 && !url.startsWith('http') && !url.startsWith('mailto:')) {
+                                url = 'mailto:' + url;
+                            } else if (url.startsWith('wa.me/')) {
+                                url = 'https://' + url;
+                            } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('mailto:') && !url.startsWith('tel:') && !url.startsWith('#')) {
+                                url = 'https://' + url;
+                            }
+                        }
+                        socials.push({ label, url: url || '#' });
+                    }
+                });
+
+                // Compile
+                const compiled = {
+                    pageTitle,
+                    metaDescription: metaDesc,
+                    logoName,
+                    footerText,
+                    heroTitle,
+                    heroSubtitle,
+                    portraitSrc: currentData.portraitSrc,
+                    aboutDesc,
+                    aboutStats,
+                    skills,
+                    projects,
+                    experience,
+                    education,
+                    resumeDesc,
+                    resumeLabel,
+                    resumeData,
+                    resumeFileName,
+                    socials
+                };
+
+                try {
+                    localStorage.setItem(STORE_KEY, JSON.stringify(compiled));
+                    currentData = compiled;
+                    showToast('✅ All changes saved! Open or refresh your portfolio to see them.');
+                } catch (e) {
+                    alert('LocalStorage size limit exceeded due to large embedded images. Please use image URLs or smaller images.');
+                }
+            };
+
+            /* ==================================================
+               7. EXPORT CONFIG.JS
+            ================================================== */
+            window.exportConfigFile = function () {
+                saveAllContent(); // Ensure latest fields collected
+
+                const exportObj = {
+                    site: {
+                        pageTitle: currentData.pageTitle || "Prathosh — Premium Portfolio",
+                        metaDescription: currentData.metaDescription || "Prathosh — A visionary developer blending design and engineering.",
+                        logoName: currentData.logoName || "Prathosh",
+                        footerText: currentData.footerText || "© 2026 Prathosh. All rights reserved."
+                    },
+                    hero: {
+                        title: currentData.heroTitle || "Crafting Digital Experiences",
+                        subtitle: currentData.heroSubtitle || "Design & Engineering by Prathosh, a specialized design wizard building scalable web applications."
+                    },
+                    about: {
+                        description: currentData.aboutDesc || "",
+                        stats: currentData.aboutStats || []
+                    },
+                    skills: currentData.skills || [],
+                    projects: currentData.projects || [],
+                    experience: currentData.experience || [],
+                    education: currentData.education || [],
+                    resume: {
+                        description: currentData.resumeDesc || "",
+                        buttonText: currentData.resumeLabel || "Download Resume v2.0",
+                        fileData: currentData.resumeData || "",
+                        fileName: currentData.resumeFileName || "Prathosh_S_Web_Developer_Resume.pdf"
+                    },
+                    socials: currentData.socials || [],
+                    portrait: {
+                        src: currentData.portraitSrc || ""
+                    }
+                };
+
+                const jsContent = "/* ============================================================\n" +
+                    "   Portfolio Configuration — js/config.js\n" +
+                    "   ------------------------------------------------------------\n" +
+                    "   This file stores your permanent portfolio data. \n" +
+                    "   When you deploy to Vercel, this is what the public sees.\n" +
+                    "   ============================================================ */\n\n" +
+                    "const CMS_CONFIG = " + JSON.stringify(exportObj, null, 4) + ";\n\n" +
+                    "window.CMS_CONFIG = CMS_CONFIG;\n";
+
+                const blob = new Blob([jsContent], { type: "text/javascript" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "config.js";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast("📂 config.js downloaded! Replace js/config.js and push to GitHub/Vercel.");
+            };
+
+            /* ==================================================
+               8. RESET TO DEFAULTS
+            ================================================== */
+            window.resetToDefaults = function () {
+                if (confirm("Are you sure you want to reset all data back to the default config.js file?")) {
+                    localStorage.removeItem(STORE_KEY);
+                    loadMasterData();
+                    showToast("🔄 Restored to initial config defaults.");
+                }
+            };
+
+            /* ==================================================
+               9. TOAST NOTIFICATION
+            ================================================== */
+            function showToast(msg, icon = '✅') {
+                const toast = document.getElementById('admin-toast');
+                const msgEl = document.getElementById('admin-toast-msg');
+                const iconEl = document.getElementById('admin-toast-icon');
+
+                if (toast && msgEl) {
+                    msgEl.textContent = msg;
+                    if (iconEl) iconEl.textContent = icon;
+                    toast.classList.add('show');
+                    clearTimeout(window.__toastTimer);
+                    window.__toastTimer = setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3500);
+                }
+            }
+
+            function esc(str) {
+                return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // Init
+            checkAuth();
+            loadMasterData();
+
+        }());
+    </script>
+</body>
+
+</html>
